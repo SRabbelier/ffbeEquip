@@ -487,7 +487,9 @@ function updateLinks() {
     $("#linkToContribute").prop("href","contribute.html" + serverParam);
 }
 
-var 
+var getNames = function(collection) {
+    return collection.map(function(item){return item.name;});
+}
 
 // Filter the items according to the currently selected filters. Also if sorting is asked, calculate the corresponding value for each item
 var filter = function(onlyShowOwnedItems = true, stat = "", baseStat = 0, searchText = "", selectedUnit = "", types = [], elements = [], ailments = [], killers = [], accessToRemove = [], additionalStat = "", showNotReleasedYet = false) {
@@ -495,44 +497,45 @@ var filter = function(onlyShowOwnedItems = true, stat = "", baseStat = 0, search
     for (var index in data) {
         var item = data[index];
         if (onlyShowOwnedItems && !(itemInventory && itemInventory[item[getItemInventoryKey()]])) {
-		continue;
-	}
-            if (item.access.includes("not released yet") && !showNotReleasedYet) {
-		    continue;
-	    }
-                if (types.length != 0 && !types.includes(item.type)) {
-			continue;
-		}
-                    if (elements.length != 0
-			|| (item.element && matches(elements, item.element))
-			|| (elements.includes("noElement") && !item.element)
-			|| (item.resist && matches(elements, item.resist.map(function(resist){return resist.name;})))) {
-			    continue;
-		    }
-                        if (ailments.length == 0
-			    || (item.ailments && matches(ailments, item.ailments.map(function(ailment){return ailment.name;})))
-			    || (item.resist && matches(ailments, item.resist.map(function(res){return res.name;})))) {
-				continue;
-			}
-                            if (killers.length == 0 || (item.killers && matches(killers, item.killers.map(function(killer){return killer.name;})))) {
-                                if (accessToRemove.length == 0 || haveAuthorizedAccess(accessToRemove, item)) {
-                                    if (additionalStat.length == 0 || hasStats(additionalStat, item)) {
-                                        if (searchText.length == 0 || containsText(searchText, item)) {
-                                            if (selectedUnit.length == 0 || !exclusiveForbidAccess(item, selectedUnit)) {
-                                                if (stat.length == 0 || hasStat(stat, item)) {
-                                                    calculateValue(item, baseStat, stat, ailments, elements, killers);
-                                                    result.push(item);
-                                                }
-                                            }
-                                        }
-                                    }
-                                } 
-                            }
-                        }
-                    }
-                }
-            }
+            continue;
         }
+        if (!showNotReleasedYet && item.access.includes("not released yet")) {
+            continue;
+        }
+        if (types.length != 0 && !types.includes(item.type)) {
+            continue;
+        }
+        if (elements.length != 0
+            && (item.element && !matches(elements, item.element))
+            && (!item.element && !elements.includes("noElement"))
+            && (item.resist && !matches(elements, getNames(item.resist)) {
+            continue;
+        }
+        if (ailments.length != 0
+            && (item.ailments && !matches(ailments, getNames(item.ailments))
+            && (item.resist && !matches(ailments, getNames(item.resist))) {
+            continue;
+        }
+        if (killers.length != 0 && !(item.killers && matches(killers, getName(item.killers)))) {
+            continue;
+        }
+        if (accessToRemove.length != 0 && !haveAuthorizedAccess(accessToRemove, item)) {
+            continue;
+        }
+        if (additionalStat.length != 0 && !hasStats(additionalStat, item)) {
+            continue;
+        }
+        if (searchText.length != 0 && !containsText(searchText, item)) {
+            continue;
+        }
+        if (selectedUnit.length != 0 && exclusiveForbidAccess(item, selectedUnit)) {
+            continue;
+        }
+        if (stat.length != 0 && !hasStat(stat, item)) {
+            continue;
+        }
+        calculateValue(item, baseStat, stat, ailments, elements, killers);
+        result.push(item);
     }
     return result;
 };
